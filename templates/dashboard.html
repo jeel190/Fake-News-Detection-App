@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — News Detect{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="welcome-banner">
+        <div>
+            <h1 class="hindi-welcome">न्यूज़ डिटेक्ट में आपका स्वागत है!</h1>
+            <p>Paste any news headline below or select one from the quick headlines list to verify whether it is Real News or Fake News.</p>
+        </div>
+        <a href="{{ url_for('history') }}" class="btn btn-accent">View Full History</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label">Total Checks</div>
+            <div class="stat-value">{{ total_checks }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Verified Real News</div>
+            <div class="stat-value real">{{ real_count }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Detected Fake News</div>
+            <div class="stat-value fake">{{ fake_count }}</div>
+        </div>
+    </div>
+
+    <div class="card" id="check-news">
+        <div class="card-header">
+            <h2 class="card-title">News Authenticity Checker</h2>
+            <span style="color: var(--text-muted); font-size: 0.9rem;">AI + Live Fact-Check Verification</span>
+        </div>
+
+        <!-- Sample Headlines Box -->
+        <div class="sample-box">
+            <div class="sample-box-header">
+                <span><strong>Quick Test Headlines (2024–2026)</strong> — Scroll down for all 20 &amp; click <strong>Select</strong></span>
+                <select id="headlineDropdown" class="headline-dropdown" onchange="selectFromDropdown(this)">
+                    <option value="">-- Or choose from dropdown (20 Headlines) --</option>
+                    {% for h in sample_headlines %}
+                    <option value="{{ h }}">{{ loop.index }}. {{ h[:75] }}{% if h|length > 75 %}...{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="sample-list-scroll">
+                {% for h in sample_headlines %}
+                <div class="sample-row">
+                    <span class="sample-text"><strong>{{ loop.index }}.</strong> {{ h }}</span>
+                    <button type="button" class="btn-select" onclick="fillHeadline(this)" data-headline="{{ h }}">Select</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <form method="POST" action="{{ url_for('dashboard') }}">
+            <textarea id="news_text" name="news_text" class="news-input"
+                      placeholder="Paste or type the news text/headline here to verify..." required>{{ submitted_news }}</textarea>
+            <button type="submit" class="btn btn-accent">Check News Authenticity</button>
+        </form>
+
+        {% if prediction_result %}
+        <div class="result-box {{ 'real' if prediction_result == 'REAL NEWS' else 'fake' }}">
+            <div class="result-content">
+                <div class="result-verdict">
+                    {% if prediction_result == 'REAL NEWS' %}
+                        &#10004; This is Real News
+                    {% else %}
+                        &#9888; This is Fake News
+                    {% endif %}
+                </div>
+
+                {% if confidence_score > 0 %}
+                <div class="confidence-bar-container">
+                    <div class="confidence-label">Confidence: {{ confidence_score }}%</div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill {{ 'real' if prediction_result == 'REAL NEWS' else 'fake' }}"
+                             style="width: {{ confidence_score }}%"></div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if explanation %}
+                <div class="result-explanation">
+                    <strong>Analysis:</strong> {{ explanation }}
+                </div>
+                {% endif %}
+
+                {% if sources and sources|length > 0 %}
+                <div class="result-sources">
+                    <strong>Sources:</strong>
+                    {% for src in sources %}
+                    <span class="source-tag">{{ src }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Recent Checks</h2>
+            <a href="{{ url_for('history') }}" style="color: var(--blue-accent); font-weight: 600; text-decoration: none;">See All &rarr;</a>
+        </div>
+
+        {% if recent_history %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date &amp; Time</th>
+                        <th>News Content</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_history %}
+                    <tr>
+                        <td style="white-space: nowrap;">{{ item['checked_at'] }}</td>
+                        <td>{{ item['news_text'][:100] }}{% if item['news_text']|length > 100 %}...{% endif %}</td>
+                        <td>
+                            <span class="badge {{ 'badge-real' if item['prediction'] == 'REAL NEWS' else 'badge-fake' }}">
+                                {{ item['prediction'] }}
+                            </span>
+                        </td>
+                        <td>{{ item['confidence'] }}%</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p style="color: var(--text-muted);">No news checked yet. Select or enter a news headline above to get started!</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function fillHeadline(btn) {
+    const text = btn.getAttribute('data-headline');
+    const textarea = document.getElementById('news_text');
+    textarea.value = text;
+    textarea.focus();
+}
+
+function selectFromDropdown(selectEl) {
+    if (selectEl.value) {
+        const textarea = document.getElementById('news_text');
+        textarea.value = selectEl.value;
+        textarea.focus();
+    }
+}
+</script>
+{% endblock %}

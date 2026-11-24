@@ -1,0 +1,23 @@
+# Environment & Secrets
+.env
+*.env
+
+# Database & Cache
+database.db
+*.db
+__pycache__/
+*.pyc
+*.pyo
+
+# Unused legacy ML & auth artifacts
+model/
+train_model.py
+templates/login.html
+templates/register.html
+templates/profile.html
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Past History — News Detect{% endblock %}
+
+{% block content %}
+<div class="container">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <h2 class="card-title">Past News Checking History</h2>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Log of all previously verified news headlines and articles.</p>
+            </div>
+            {% if history_items %}
+            <form method="POST" action="{{ url_for('clear_history') }}" onsubmit="return confirm('Are you sure you want to clear all your past history?');">
+                <button type="submit" class="btn btn-danger-outline">Clear All History</button>
+            </form>
+            {% endif %}
+        </div>
+
+        {% if history_items %}
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Date &amp; Time</th>
+                        <th>News Headline / Article</th>
+                        <th>Result</th>
+                        <th>Confidence</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in history_items %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td style="white-space: nowrap;">{{ item['checked_at'] }}</td>
+                        <td>{{ item['news_text'] }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-real' if item['prediction'] == 'REAL NEWS' else 'badge-fake' }}">
+                                {{ item['prediction'] }}
+                            </span>
+                        </td>
+                        <td>{{ item['confidence'] }}%</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_history_item', item_id=item['id']) }}">
+                                <button type="submit" class="btn btn-danger-outline" style="padding: 4px 10px; font-size: 0.8rem;">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align: center; padding: 40px 20px; color: var(--text-muted);">
+            <p style="font-size: 1.05rem; margin-bottom: 14px;">Your history is currently empty.</p>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-accent">Check Your First News</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

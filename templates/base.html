@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}News Detect — Fake News Detection System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <a href="{{ url_for('dashboard') }}" class="brand">
+            <span class="brand-icon">ND</span>
+            <span class="brand-title">News Detect</span>
+        </a>
+        <div class="nav-links">
+            <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active_page == 'home' else '' }}">Home</a>
+            <a href="{{ url_for('dashboard') }}#check-news">Check News</a>
+            <a href="{{ url_for('history') }}" class="{{ 'active' if active_page == 'history' else '' }}">Past History</a>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
+
+    <footer>
+        &copy; 2026 News Detect — Fake News Detection System
+    </footer>
+</body>
+</html>
